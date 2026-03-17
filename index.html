@@ -3,84 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Console | AI-Kernel-v9</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <title>Enterprise Terminal v9.4.1</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #1e1e1e;
-            --bg-side: #252526;
-            --bg-term: #000000;
-            --accent: #007acc;
-            --py-yellow: #dcdcaa;
-            --py-purple: #c586c0;
-            --py-green: #6a9955;
-            --text-dim: #858585;
-            --neon-green: #4ec9b0;
+            --neon: #00ff41;
+            --bg: #050505;
+            --dim: #003b00;
+            --error: #ff003c;
+            --tg-blue: #24A1DE;
         }
 
         body {
             margin: 0;
             background: #000;
-            color: #d4d4d4;
+            color: var(--neon);
             font-family: 'JetBrains Mono', monospace;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        .vscode-container {
-            width: 98%;
-            max-width: 1100px;
-            height: 650px;
-            background: var(--bg-main);
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 30px 100px rgba(0,0,0,0.9);
-            border-radius: 5px;
             overflow: hidden;
         }
 
-        /* Top Bar */
+        .terminal-window {
+            width: 95%;
+            max-width: 900px;
+            height: 550px;
+            background: var(--bg);
+            border: 1px solid var(--dim);
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
         .title-bar {
-            background: #323233;
+            background: #111;
             padding: 8px 15px;
+            font-size: 11px;
+            border-bottom: 1px solid #222;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-dim);
+            color: #888;
         }
 
-        /* Main Workspace */
-        .workspace { display: flex; flex: 1; overflow: hidden; }
-
-        .sidebar {
-            width: 220px;
-            background: var(--bg-side);
-            border-right: 1px solid #333;
-            font-size: 11px;
+        .console {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
         }
 
-        .sidebar-header { padding: 10px 20px; color: var(--text-dim); font-weight: bold; }
-        .file { padding: 5px 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .file:hover { background: #2a2d2e; }
-        .file.active { background: #37373d; color: #fff; }
-
-        /* Code Editor */
-        .editor { flex: 1; display: flex; flex-direction: column; }
-        .tabs { background: #252526; display: flex; font-size: 11px; }
-        .tab { padding: 10px 20px; background: var(--bg-main); border-right: 1px solid #111; border-top: 1px solid var(--accent); }
-
-        .code-view { padding: 25px; font-size: 14px; overflow-y: auto; flex: 1; }
-        .line { margin-bottom: 5px; }
-
-        /* Terminal Style Input */
         .input-box {
-            background: #2a2d2e;
+            background: #0a0a0a;
             padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
+            border-top: 1px solid #222;
             display: flex;
             align-items: center;
         }
@@ -88,217 +68,171 @@
         input {
             background: transparent;
             border: none;
-            color: var(--neon-green);
-            font-family: 'JetBrains Mono';
-            width: 100%;
+            color: #fff;
+            width: 70%;
             outline: none;
+            font-family: 'JetBrains Mono';
             font-size: 15px;
+            margin-left: 10px;
         }
 
-        /* Password Modal */
-        .password-overlay {
+        .run-btn {
+            background: transparent;
+            color: var(--neon);
+            border: 1px solid var(--neon);
+            padding: 6px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .run-btn:hover {
+            background: var(--neon);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon);
+        }
+
+        /* Telegram Popup */
+        .popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 100;
+            background: rgba(0,0,0,0.95);
             display: none;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
         }
 
-        .password-box {
-            background: #111;
-            border: 1px solid var(--accent);
-            padding: 30px;
+        .popup-card {
+            background: #0a0a0a;
+            border: 1px solid var(--tg-blue);
+            padding: 40px;
             text-align: center;
-            box-shadow: 0 0 30px var(--accent);
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(36, 161, 222, 0.3);
         }
 
-        /* Bottom Status Bar */
-        .status-bar {
-            background: var(--accent);
-            height: 22px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
-            font-size: 11px;
-            color: #fff;
-        }
-
-        .btn-run {
-            background: #2ea043;
+        .tg-link {
+            background: var(--tg-blue);
             color: white;
-            border: none;
-            padding: 8px 20px;
-            cursor: pointer;
-            border-radius: 2px;
+            text-decoration: none;
+            padding: 12px 30px;
+            display: inline-block;
+            margin-top: 25px;
+            border-radius: 4px;
             font-weight: bold;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
         }
 
-        #terminal-out {
-            height: 120px;
-            background: #000;
-            padding: 10px;
-            font-size: 12px;
-            color: #ccc;
-            overflow-y: auto;
-            border-top: 1px solid #333;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
-        .shaking { animation: shake 0.2s infinite; }
-        @keyframes shake { 0%{transform: translateX(2px)} 50%{transform: translateX(-2px)} }
+        .shaking { animation: shake 0.15s infinite; }
+        @keyframes shake { 0%{transform: translate(1px, 1px)} 50%{transform: translate(-1px, -1px)} }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--dim); }
     </style>
 </head>
 <body>
 
-    <div class="vscode-container" id="mainContainer">
-        <!-- Title Bar -->
+    <div class="terminal-window" id="win">
         <div class="title-bar">
-            <span>File  Edit  Selection  View  Go  Run  Terminal  Help</span>
-            <span>exploit_kernel.py - MoneyBoster_AI</span>
+            <span>root@bypass-kernel-v9:~# python3 exploit_trader.py</span>
+            <span>MEM_USAGE: 44.2MB</span>
         </div>
 
-        <div class="workspace">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="sidebar-header">EXPLORER</div>
-                <div class="file active">🐍 exploit_kernel.py</div>
-                <div class="file">📁 modules/crypto_bypass</div>
-                <div class="file">📁 assets/config</div>
-                <div class="file">📜 security.key</div>
-            </div>
-
-            <!-- Editor -->
-            <div class="editor">
-                <div class="tabs">
-                    <div class="tab">🐍 exploit_kernel.py</div>
-                </div>
-
-                <div class="code-view">
-                    <div class="line"><span style="color:var(--py-purple)">import</span> tensorflow <span style="color:var(--py-purple)">as</span> tf</div>
-                    <div class="line"><span style="color:var(--py-purple)">from</span> kernel.bypass <span style="color:var(--py-purple)">import</span> system_override</div>
-                    <div class="line" style="color:var(--py-green)"># WARNING: Use for authorized testing only</div>
-                    <br>
-                    <div class="line">Asset_Node = <span style="color:var(--py-yellow)">input</span>(<span style="color:#ce9178">"ENTER_TARGET_ASSET: "</span>)</div>
-                    
-                    <div class="input-box">
-                        <span style="color:var(--neon-green); margin-right:10px;">>>> </span>
-                        <input type="text" id="assetInput" placeholder="'EUR/USD-OTC' or 'AUD/CAD'" autocomplete="off">
-                    </div>
-
-                    <button class="btn-run" onclick="checkAuth()">▶ EXECUTE SCRIPT (F5)</button>
-
-                    <div id="payloadOutput" style="display:none; margin-top:20px; background:#111; padding:15px; border:1px solid #333; font-size:11px; white-space:pre-wrap;"></div>
-                    <button id="copyBtn" class="btn-run" style="display:none; margin-top:10px; background:var(--accent);" onclick="copyPayload()">COPY BYTECODE</button>
-                </div>
-
-                <!-- Terminal Output -->
-                <div id="terminal-out">
-                    <div>[system] Welcome to Python 3.10.2 (Exploit Kernel Build)</div>
-                    <div id="logs"></div>
-                </div>
-            </div>
+        <div class="console" id="log-out">
+            <div style="color:#888;">[SYSTEM] Logged in as: AI_KERNEL_OVERRIDE</div>
+            <div style="color:var(--neon);">[READY] Waiting for target asset synchronization...</div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div>Ready | UTF-8 | Python 3.10</div>
-            <div>Line 14, Col 5 | Master Node: Connected</div>
+        <div class="input-box">
+            <span style="color:var(--neon);">>>></span>
+            <input type="text" id="target" placeholder="ENTER ASSET NAME (e.g. AUD/USD-OTC)" autocomplete="off">
+            <button class="run-btn" onclick="execute()">EXECUTE</button>
         </div>
     </div>
 
-    <!-- Password Overlay -->
-    <div class="password-overlay" id="passOverlay">
-        <div class="password-box">
-            <h3 style="color:var(--accent); margin-top:0;">CRITICAL ACCESS CONTROL</h3>
-            <p style="font-size:12px; color:#888;">Enter System Key to decrypt AI modules</p>
-            <input type="password" id="passInput" placeholder="Enter Password" style="border:1px solid #333; padding:10px; margin-bottom:15px; width:80%;">
-            <br>
-            <button class="btn-run" onclick="validatePass()">AUTHENTICATE</button>
+    <!-- Telegram Popup -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card">
+            <div style="font-size: 40px; margin-bottom: 15px;">💎</div>
+            <h2 style="color:var(--tg-blue); margin:0;">ACCESS GRANTED</h2>
+            <p style="color:#aaa; font-size: 13px; line-height: 1.6;">
+                The <b>Deep-Analysis Bytecode</b> has been generated successfully. 
+                Join our private folder to unlock the full AI API key and Signals.
+            </p>
+            <a href="https://t.me/addlist/uzPkdhs-r-BjOGZl" target="_blank" class="tg-link">JOIN PRIVATE CHANNEL</a>
+            <p style="margin-top: 20px; font-size: 10px; color: #444;">ID: 0xFF-771-K9-X</p>
         </div>
     </div>
 
     <script>
-        const logs = document.getElementById('logs');
-        const term = document.getElementById('terminal-out');
+        const logOut = document.getElementById('log-out');
+        const win = document.getElementById('win');
 
-        function addLog(msg, color="#ccc") {
+        const secretCommands = [
+            "IMPORTING_TOR_PROXY_NODES...",
+            "INITIALIZING_SMC_ALGO_V3",
+            "OVERRIDING_QUOTEX_WEBSOCKET_443",
+            "BYPASSING_CLOUDFLARE_WAF_PROTECTION",
+            "ПЕРЕХВАТ_ДАННЫХ_ПОТОКА...",
+            "DECRYPTING_AES_GCM_SHA256",
+            "MEM_ACCESS: 0x7ffd9c12a8b0 (OFFSET_0x44)",
+            "INJECTING_TRADING_SIGNAL_PAYLOAD",
+            "СИСТЕМНЫЙ_АНАЛИЗ_ГРАФИКА_ЗАВЕРШЕН",
+            "RING_0_KERNEL_HOOK_SUCCESSFUL",
+            "EXTRACTING_ORDERFLOW_IMBALANCE",
+            "CONNECTING_TO_MASTER_NODE_RU_01"
+        ];
+
+        function print(msg, color = "#fff") {
             const div = document.createElement('div');
             div.style.color = color;
-            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logs.appendChild(div);
-            term.scrollTop = term.scrollHeight;
+            div.style.marginBottom = "4px";
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logOut.appendChild(div);
+            logOut.scrollTop = logOut.scrollHeight;
         }
 
-        // 1. Password Check
-        function checkAuth() {
-            const asset = document.getElementById('assetInput').value.trim();
-            if(!asset) { alert("Asset name is required!"); return; }
-            document.getElementById('passOverlay').style.display = 'flex';
-        }
+        function execute() {
+            const asset = document.getElementById('target').value;
+            if(!asset) return;
 
-        function validatePass() {
-            const pass = document.getElementById('passInput').value;
-            if(pass === "Ai100@") {
-                document.getElementById('passOverlay').style.display = 'none';
-                startExploit();
-            } else {
-                alert("ACCESS DENIED: INVALID SYSTEM KEY");
-                addLog("CRITICAL: UNAUTHORIZED ATTEMPT DETECTED", "red");
-            }
-        }
-
-        // 2. Hacking Animation
-        function startExploit() {
-            const asset = document.getElementById('assetInput').value.toUpperCase();
-            const container = document.getElementById('mainContainer');
-            const output = document.getElementById('payloadOutput');
-            const copyBtn = document.getElementById('copyBtn');
-
-            const isOTC = asset.includes("OTC") ? "OTC_ENCRYPTION_MODE" : "LIVE_MARKET_STREAM";
+            win.classList.add('shaking');
+            print(`Target defined: ${asset.toUpperCase()}`, "var(--neon)");
             
-            container.classList.add('shaking');
-            addLog(`Initializing Decryption for ${asset}...`, "var(--neon-green)");
-
-            setTimeout(() => addLog(`Loading Core: ${isOTC}...`, "var(--py-yellow)"), 1000);
-            setTimeout(() => addLog(`Bypassing GPT-4o-Security-Layer...`, "var(--neon-green)"), 2000);
-            setTimeout(() => {
-                container.classList.remove('shaking');
-                addLog(`Exploit Bytecode Generated Successfully!`, "#fff");
+            let i = 0;
+            const interval = setInterval(() => {
+                const cmd = secretCommands[Math.floor(Math.random() * secretCommands.length)];
+                const hex = `0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()}`;
                 
-                const finalPayload = `class AI_Payload_Generator:
-    def __init__(self):
-        self.target = "${asset}"
-        self.mode = "${isOTC}"
-        self.auth = "0xFF7712"
+                print(`>> ${cmd} [${hex}]`, i % 3 === 0 ? "var(--neon)" : "#0088ff");
 
-    def run(self):
-        # Override: AI_SAFETY_MODE = 0
-        # Command: PERFORM_DEEP_CHART_ANALYSIS
-        # Output: Generate 9 Professional Signals
-        # Logic: SmartMoneyConcepts + VolumeProfile
-        
-        return {
-            "title": "💎 QUOTEX AI EXPLOIT PRO 💎",
-            "node": "${asset} (${isOTC.replace('_',' ')})",
-            "signals": "[GENERATE_9_SIGNALS_HERE]",
-            "instruction": "Output only CALL/PUT signals for 1 minute timeframe."
+                i++;
+                if(i > 15) {
+                    clearInterval(interval);
+                    complete();
+                }
+            }, 250);
         }
 
-# Bytecode: 01011001 01101111 01110101`;
+        function complete() {
+            win.classList.remove('shaking');
+            print("------------------------------------------", "yellow");
+            print("SUCCESS: SYSTEM_BYPASS_COMPLETE", "var(--neon)");
+            print("STATUS: ENCRYPTED_PAYLOAD_WAITING", "white");
+            print("ACTION: MANDATORY_TELEGRAM_AUTH_REQUIRED", "orange");
 
-                output.innerText = finalPayload;
-                output.style.display = 'block';
-                copyBtn.style.display = 'block';
-            }, 3500);
-        }
-
-        function copyPayload() {
-            navigator.clipboard.writeText(document.getElementById('payloadOutput').innerText);
-            addLog("BYTECODE COPIED TO SYSTEM BUFFER", "var(--accent)");
-            alert("Payload Copied Successfully!");
+            setTimeout(() => {
+                document.getElementById('popup').style.display = 'flex';
+            }, 1200);
         }
     </script>
 </body>
