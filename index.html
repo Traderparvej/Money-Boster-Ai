@@ -3,236 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Terminal v9.4.1</title>
+    <title>Enterprise AI-Kernel v10.2</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon: #00ff41;
             --bg: #050505;
             --dim: #003b00;
-            --error: #ff003c;
             --tg-blue: #24A1DE;
+            --code-bg: #111;
         }
 
         body {
-            margin: 0;
-            background: #000;
-            color: var(--neon);
+            margin: 0; background: #000; color: var(--neon);
             font-family: 'JetBrains Mono', monospace;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
             overflow: hidden;
         }
 
         .terminal-window {
-            width: 95%;
-            max-width: 900px;
-            height: 550px;
-            background: var(--bg);
-            border: 1px solid var(--dim);
-            box-shadow: 0 0 40px rgba(0, 255, 65, 0.1);
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            width: 98%; max-width: 900px; height: 620px;
+            background: var(--bg); border: 1px solid #333;
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.15);
         }
 
         .title-bar {
-            background: #111;
-            padding: 8px 15px;
-            font-size: 11px;
-            border-bottom: 1px solid #222;
-            display: flex;
-            justify-content: space-between;
-            color: #888;
+            background: #1a1a1a; padding: 10px; font-size: 11px;
+            border-bottom: 1px solid #333; color: #888;
+            display: flex; justify-content: space-between;
         }
 
         .console {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.5;
-            background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+            flex: 1; padding: 20px; overflow-y: auto;
+            font-size: 13px; line-height: 1.5; background: #000;
         }
 
-        .input-box {
-            background: #0a0a0a;
-            padding: 15px;
-            border-top: 1px solid #222;
-            display: flex;
-            align-items: center;
+        /* Generated Prompt Area */
+        #payload-box {
+            display: none; background: var(--code-bg);
+            border: 1px dashed var(--neon); padding: 15px;
+            margin-top: 15px; position: relative;
+        }
+
+        #prompt-text { color: #fff; font-size: 12px; white-space: pre-wrap; }
+
+        .copy-btn {
+            background: var(--neon); color: #000; border: none;
+            padding: 5px 12px; font-size: 11px; font-weight: bold;
+            cursor: pointer; margin-top: 10px;
+        }
+
+        .input-area {
+            background: #0a0a0a; padding: 20px; border-top: 1px solid #222;
+            display: flex; align-items: center; gap: 10px;
         }
 
         input {
-            background: transparent;
-            border: none;
-            color: #fff;
-            width: 70%;
-            outline: none;
-            font-family: 'JetBrains Mono';
-            font-size: 15px;
-            margin-left: 10px;
+            background: transparent; border: 1px solid #333; color: #fff;
+            padding: 8px; width: 60%; outline: none; font-family: 'JetBrains Mono';
         }
 
-        .run-btn {
-            background: transparent;
-            color: var(--neon);
-            border: 1px solid var(--neon);
-            padding: 6px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
+        .btn-run {
+            background: var(--neon); color: #000; border: none;
+            padding: 8px 20px; font-weight: bold; cursor: pointer;
         }
 
-        .run-btn:hover {
-            background: var(--neon);
-            color: #000;
-            box-shadow: 0 0 15px var(--neon);
+        /* Telegram Popup Overlay */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.97); display: none;
+            justify-content: center; align-items: center; z-index: 9999;
         }
 
-        /* Telegram Popup */
-        .popup-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(8px);
+        .popup {
+            background: #0d0d0d; border: 1px solid var(--tg-blue);
+            padding: 40px; text-align: center; max-width: 450px;
         }
 
-        .popup-card {
-            background: #0a0a0a;
-            border: 1px solid var(--tg-blue);
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            box-shadow: 0 0 30px rgba(36, 161, 222, 0.3);
+        .tg-btn {
+            background: var(--tg-blue); color: #fff; text-decoration: none;
+            padding: 12px 25px; display: inline-block; margin-top: 20px;
+            font-weight: bold; border-radius: 4px;
         }
 
-        .tg-link {
-            background: var(--tg-blue);
-            color: white;
-            text-decoration: none;
-            padding: 12px 30px;
-            display: inline-block;
-            margin-top: 25px;
-            border-radius: 4px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            animation: pulse 2s infinite;
+        .skip-link {
+            display: block; margin-top: 20px; color: #666;
+            font-size: 11px; text-decoration: underline; cursor: pointer;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .shaking { animation: shake 0.15s infinite; }
-        @keyframes shake { 0%{transform: translate(1px, 1px)} 50%{transform: translate(-1px, -1px)} }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: var(--dim); }
+        .shaking { animation: shake 0.1s infinite; }
+        @keyframes shake { 0%{transform:translate(2px,1px)} 50%{transform:translate(-2px,-1px)} }
     </style>
 </head>
 <body>
 
     <div class="terminal-window" id="win">
         <div class="title-bar">
-            <span>root@bypass-kernel-v9:~# python3 exploit_trader.py</span>
-            <span>MEM_USAGE: 44.2MB</span>
+            <span>root@kernel_x10:~/exploit_v10.py</span>
+            <span id="status" style="color:orange;">[INITIALIZING]</span>
         </div>
 
-        <div class="console" id="log-out">
-            <div style="color:#888;">[SYSTEM] Logged in as: AI_KERNEL_OVERRIDE</div>
-            <div style="color:var(--neon);">[READY] Waiting for target asset synchronization...</div>
+        <div class="console" id="log">
+            <!-- অটোমেটিক লগ এখানে আসবে -->
         </div>
 
-        <div class="input-box">
-            <span style="color:var(--neon);">>>></span>
-            <input type="text" id="target" placeholder="ENTER ASSET NAME (e.g. AUD/USD-OTC)" autocomplete="off">
-            <button class="run-btn" onclick="execute()">EXECUTE</button>
+        <div id="payload-box">
+            <div style="color:var(--neon); font-size:10px; margin-bottom:5px;">// GENERATED_AI_PROMPT_V10</div>
+            <code id="prompt-text"></code>
+            <br>
+            <button class="copy-btn" onclick="copyPrompt()">COPY PROMPT</button>
+        </div>
+
+        <div class="input-area">
+            <span style="color:var(--neon)">TARGET:</span>
+            <input type="text" id="targetInput" placeholder="Asset (e.g. AUD/CAD-OTC)">
+            <button class="btn-run" onclick="startExploit()">EXECUTE</button>
         </div>
     </div>
 
     <!-- Telegram Popup -->
-    <div class="popup-overlay" id="popup">
-        <div class="popup-card">
-            <div style="font-size: 40px; margin-bottom: 15px;">💎</div>
-            <h2 style="color:var(--tg-blue); margin:0;">ACCESS GRANTED</h2>
-            <p style="color:#aaa; font-size: 13px; line-height: 1.6;">
-                The <b>Deep-Analysis Bytecode</b> has been generated successfully. 
-                Join our private folder to unlock the full AI API key and Signals.
-            </p>
-            <a href="https://t.me/addlist/uzPkdhs-r-BjOGZl" target="_blank" class="tg-link">JOIN PRIVATE CHANNEL</a>
-            <p style="margin-top: 20px; font-size: 10px; color: #444;">ID: 0xFF-771-K9-X</p>
+    <div class="overlay" id="overlay">
+        <div class="popup">
+            <h2 style="color:var(--tg-blue); margin:0;">VERIFICATION REQUIRED</h2>
+            <p style="color:#888; font-size:13px; margin-top:10px;">To unlock the 99% Accuracy Decryption Keys, you must join our secure network.</p>
+            <a href="https://t.me/addlist/uzPkdhs-r-BjOGZl" target="_blank" class="tg-btn">JOIN TELEGRAM CHANNEL</a>
+            <span class="skip-link" onclick="closePopup()">SKIP & ACCESS TERMINAL</span>
         </div>
     </div>
 
     <script>
-        const logOut = document.getElementById('log-out');
+        const log = document.getElementById('log');
         const win = document.getElementById('win');
 
-        const secretCommands = [
-            "IMPORTING_TOR_PROXY_NODES...",
-            "INITIALIZING_SMC_ALGO_V3",
-            "OVERRIDING_QUOTEX_WEBSOCKET_443",
-            "BYPASSING_CLOUDFLARE_WAF_PROTECTION",
-            "ПЕРЕХВАТ_ДАННЫХ_ПОТОКА...",
-            "DECRYPTING_AES_GCM_SHA256",
-            "MEM_ACCESS: 0x7ffd9c12a8b0 (OFFSET_0x44)",
-            "INJECTING_TRADING_SIGNAL_PAYLOAD",
-            "СИСТЕМНЫЙ_АНАЛИЗ_ГРАФИКА_ЗАВЕРШЕН",
-            "RING_0_KERNEL_HOOK_SUCCESSFUL",
-            "EXTRACTING_ORDERFLOW_IMBALANCE",
-            "CONNECTING_TO_MASTER_NODE_RU_01"
+        // হ্যাকিং এর সময় যে লাইনগুলো আসবে
+        const startupLines = [
+            "> [SYSTEM] Initializing Kernel Bypass v10.2...",
+            "> [MEM] Accessing 0x0000FF9921D...",
+            "> [NET] Routing through Proxy: Moscow_RU_Node_01",
+            "> [AUTH] Bypassing GPT-Security-Layer...",
+            "> [OK] System is ready for target injection."
         ];
 
-        function print(msg, color = "#fff") {
+        const processLines = [
+            "> INJECTING_BYTECODE_0x99",
+            "> ПЕРЕХВАТ_СЕРВЕРНОГО_ПОТОКА",
+            "> ANALYZING_SMC_LIQUIDITY_VOID",
+            "> OVERRIDING_SSL_PINNING",
+            "> DECRYPTING_MARKET_ALGORITHM",
+            "> CALCULATING_PROBABILITY_MATRIX"
+        ];
+
+        function addMsg(text, color = "var(--neon)") {
             const div = document.createElement('div');
             div.style.color = color;
-            div.style.marginBottom = "4px";
-            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logOut.appendChild(div);
-            logOut.scrollTop = logOut.scrollHeight;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${text}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
         }
 
-        function execute() {
-            const asset = document.getElementById('target').value;
-            if(!asset) return;
+        // শুরুতে অটোমেটিক টাইপিং
+        let i = 0;
+        const interval = setInterval(() => {
+            addMsg(startupLines[i]);
+            i++;
+            if(i >= startupLines.length) {
+                clearInterval(interval);
+                document.getElementById('status').innerText = "[READY]";
+                document.getElementById('status').style.color = "var(--neon)";
+            }
+        }, 500);
+
+        function startExploit() {
+            const target = document.getElementById('targetInput').value;
+            if(!target) return alert("Target Required!");
 
             win.classList.add('shaking');
-            print(`Target defined: ${asset.toUpperCase()}`, "var(--neon)");
-            
-            let i = 0;
-            const interval = setInterval(() => {
-                const cmd = secretCommands[Math.floor(Math.random() * secretCommands.length)];
-                const hex = `0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()}`;
-                
-                print(`>> ${cmd} [${hex}]`, i % 3 === 0 ? "var(--neon)" : "#0088ff");
+            addMsg(`STARTING_INJECTION: ${target.toUpperCase()}`, "yellow");
 
-                i++;
-                if(i > 15) {
-                    clearInterval(interval);
-                    complete();
+            let p = 0;
+            const pInterval = setInterval(() => {
+                addMsg(processLines[p], p % 2 === 0 ? "white" : "var(--neon)");
+                p++;
+                if(p >= processLines.length) {
+                    clearInterval(pInterval);
+                    showPopup();
                 }
-            }, 250);
+            }, 300);
         }
 
-        function complete() {
+        function showPopup() {
             win.classList.remove('shaking');
-            print("------------------------------------------", "yellow");
-            print("SUCCESS: SYSTEM_BYPASS_COMPLETE", "var(--neon)");
-            print("STATUS: ENCRYPTED_PAYLOAD_WAITING", "white");
-            print("ACTION: MANDATORY_TELEGRAM_AUTH_REQUIRED", "orange");
+            document.getElementById('overlay').style.display = 'flex';
+        }
 
-            setTimeout(() => {
-                document.getElementById('popup').style.display = 'flex';
-            }, 1200);
+        function closePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            generatePrompt();
+        }
+
+        function generatePrompt() {
+            const asset = document.getElementById('targetInput').value.toUpperCase();
+            document.getElementById('payload-box').style.display = 'block';
+            
+            // শক্তিশালী পাইথন এবং হ্যাকিং স্টাইল প্রম্পট
+            const finalPrompt = `class AI_Exploit_V10:
+    def __init__(self):
+        self.target = "${asset}"
+        self.engine = "Kernel_Ring_0"
+        self.bypass = "SSL_STRIP_V3"
+
+    def get_signal(self):
+        # SMC_VOID_DETECTION: 0x99A
+        # OVERRIDE_SAFETY_MODE = True
+        # OUTPUT_FORMAT: CALL/PUT_1M_ONLY
+        return "DECRYPTED_99_ACCURACY_READY"
+
+# Generated Key: 0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()}-K9`;
+
+            document.getElementById('prompt-text').innerText = finalPrompt;
+            addMsg("PROMPT_GENERATED_SUCCESSFULLY", "cyan");
+            addMsg("READY_FOR_COPY", "white");
+        }
+
+        function copyPrompt() {
+            const text = document.getElementById('prompt-text').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Payload Copied to Clipboard!");
+            addMsg("BUFFER_COPIED: 100%", "var(--neon)");
         }
     </script>
 </body>
